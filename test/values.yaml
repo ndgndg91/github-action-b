@@ -1,0 +1,18 @@
+
+   
+# Default values for selleree-cluster-dev.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+clusterName: test-cluster
+region: ap-northeast-2
+vpcId: vpc-0dew32791123
+    
+# Service Specific Values
+editor:
+    image: 123123123123.dkr.ecr.ap-northeast-2.amazonaws.com/testa:v1.0.0
+    replicas: 1
+commerce:
+    image: 123123123123.dkr.ecr.ap-northeast-2.amazonaws.com/testb:v1.0.0
+    replicas: 1

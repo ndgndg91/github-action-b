@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prod
+  name: testb
+spec:
+  replicas: {{ .Values.testb.replicas }}
+  selector:
+    matchLabels:
+      app: testb
+  template:
+    metadata:
+      labels:
+        app: testb
+    spec:
+      containers:
+        - name: testb
+          image: {{ .Values.testb.image }}
+          args: ["--spring.profiles.active=prod"]
+          ports:
+          - containerPort: 8080
+          resources:
+            limits:
+              memory: "1000Mi"
+              cpu: "500m"
+            requests:
+              memory: "1000Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 2
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 2
+            successThreshold: 1
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: testb
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: testb
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
