@@ -25,7 +25,7 @@ jobs:
       - name: print event information
         run: |
           echo "================== start client payload ================="
-          echo "${{ github.event.client_payload }}"
+          echo "${{ toJSON(github.event.client_payload) }}"
           echo "=================== end client payload ================"
           echo "================== start action ================="
           echo "${{ github.event.action }}"
