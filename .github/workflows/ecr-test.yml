@@ -1,0 +1,90 @@
+on:
+  push:
+    branches: [ development, test]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+name: Selleree Spring Boot Back-end applications Build Images And Push to ECR
+
+jobs:
+  build-image:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Print github event
+      env:
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
+    - name: Set env to reetest
+      if: |
+        github.event_name == 'push' && endsWith(github.ref, 'test')
+      run: |
+        echo "ECR_ADMIN=reetest-front-admin" >> $GITHUB_ENV
+        echo "ECR_EDITOR=reetest-front-editor" >> $GITHUB_ENV
+        echo "ECR_STORE=reetest-front-store" >> $GITHUB_ENV
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.DEV_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+        echo "RELEASE_VERSION=${{ github.sha }}" >> $GITHUB_ENV
+        echo "BUILD_ENV=test" >> $GITHUB_ENV
+    - name: Set env to reedev
+      if: |
+        github.event_name == 'push' && endsWith(github.ref, 'development')
+      run: |
+        echo "ECR_ADMIN=reedev-front-admin" >> $GITHUB_ENV
+        echo "ECR_EDITOR=reedev-front-editor" >> $GITHUB_ENV
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.DEV_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+        echo "RELEASE_VERSION=${{ github.sha }}" >> $GITHUB_ENV
+        echo "BUILD_ENV=dev" >> $GITHUB_ENV
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Front Admin Build, Tag, and Push image to Amazon ECR
+      id: front-admin-app-build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.ECR_ADMIN }}
+        IMAGE_TAG: ${{ env.RELEASE_VERSION }}
+        BUILD_ENV: ${{ env.BUILD_ENV }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg environment=$BUILD_ENV -f Dockerfile-admin .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    
+    - name: Front Editor Build, Tag, and Push image to Amazon ECR
+      id: front-editor-app-build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.ECR_EDITOR }}
+        IMAGE_TAG: ${{ env.RELEASE_VERSION }}
+        BUILD_ENV: ${{ env.BUILD_ENV }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg environment=$BUILD_ENV -f Dockerfile-editor .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    
+    - name: Front Store Build, Tag, and Push image to Amazon ECR
+      id: front-store-app-build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.ECR_STORE }}
+        IMAGE_TAG: ${{ env.RELEASE_VERSION }}
+        BUILD_ENV: ${{ env.BUILD_ENV }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg environment=$BUILD_ENV -f Dockerfile-store .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
