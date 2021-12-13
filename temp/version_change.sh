@@ -48,4 +48,4 @@ fi
 
 echo "You input the $Tag!"
 
-sed "s/{{tag}}/$Tag/g" template-values.yaml > /test/values.yaml 
+sed "s/{{tag}}/$Tag/g" template-values.yaml > ../test/values.yaml 

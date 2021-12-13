@@ -32,7 +32,9 @@ jobs:
           echo "${{ github.event.action }}"
           echo "================== end action ================="
           ls
+          cd temp
           sh temp/version_change.sh -t "${{ github.event.client_payload.tag }}"
+          cd ..
       - name: check for changes
         run: git status
       - name: stage changed files
