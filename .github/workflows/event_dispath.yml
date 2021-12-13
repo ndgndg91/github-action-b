@@ -26,13 +26,13 @@ jobs:
         run: |
           echo "================== start client payload ================="
           echo "${{ toJSON(github.event.client_payload) }}"
-          echo "${{ toJSON(github.event.client_payload).tag }}"
+          echo "${{ github.event.client_payload.tag }}"
           echo "=================== end client payload ================"
           echo "================== start action ================="
           echo "${{ github.event.action }}"
           echo "================== end action ================="
           chmod +x version_change.sh
-          sh version_change.sh -t "${{ toJSON(github.event.client_payload).tag }}"
+          sh version_change.sh -t "${{ github.event.client_payload.tag }}"
       - name: check for changes
         run: git status
       - name: stage changed files
