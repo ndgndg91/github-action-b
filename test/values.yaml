@@ -11,8 +11,8 @@ vpcId: vpc-0dew32791123
     
 # Service Specific Values
 editor:
-    image: 123123123123.dkr.ecr.ap-northeast-2.amazonaws.com/testa:v2.0.9
+    image: 123123123123.dkr.ecr.ap-northeast-2.amazonaws.com/testa:v2.1.0
     replicas: 1
 commerce:
-    image: 123123123123.dkr.ecr.ap-northeast-2.amazonaws.com/testb:v2.0.9
+    image: 123123123123.dkr.ecr.ap-northeast-2.amazonaws.com/testb:v2.1.0
     replicas: 1
