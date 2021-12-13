@@ -35,6 +35,10 @@ jobs:
           cd temp
           sh version_change.sh -t "${{ github.event.client_payload.tag }}"
           cd ..
+      - name: git config
+        run: |
+          git config --global user.email "ndgndg91@gmail.com"
+          git config --global user.name "ndgndg91"
       - name: check for changes
         run: git status
       - name: stage changed files
